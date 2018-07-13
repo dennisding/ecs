@@ -4,6 +4,7 @@
 #include <string>
 
 #include <ecs/component.hpp>
+#include <ecs/type_utils.hpp>
 
 class pos : public ecs::component
 {
@@ -11,15 +12,7 @@ public:
 	pos(const float x = 0, float y = 0, float z = 0) : x_(x), y_(y), z_(z)
 	{}
 
-	static component *create(const float &x, float y, float z)
-	{
-		return new pos(x, y, z);
-	}
-
-	static const std::string name()
-	{
-		return "pos";
-	}
+	ECS_TYPE_INFO("pos", ECS_INIT_ARG(float, float, float))
 
 public:
 	float x_, y_, z_;
@@ -28,17 +21,10 @@ public:
 class speed : public ecs::component
 {
 public:
-	speed(const std::string s,float x = 0, float y = 0, float z = 0) : x_(x), y_(y), z_(z)
+	speed(float x = 0, float y = 0, float z = 0) : x_(x), y_(y), z_(z)
 	{}
 
-	static component *create(const std::string )
-	{
-	}
-
-	static const std::string name()
-	{
-		return "speed";
-	}
+	ECS_TYPE_INFO("speed", ECS_INIT_ARG(float, float, float))
 
 public:
 	float x_, y_, z_;

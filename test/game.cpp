@@ -17,7 +17,7 @@ void game::init()
 
 	const float i = 1;
 	auto p = f2.create("pos", i, 1.0f, 1.0f);
-	auto s = f2.create("speed", "hello_world!");
+	auto s = f2.create("speed", 1.2f, 2.0f, 3.2f);
 
 	auto p2 = f2.create<pos>(i, 4.0f);
 }

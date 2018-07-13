@@ -15,22 +15,24 @@ ECS_NAMESPACE_BEGIN
 template <typename object, typename fun_type, typename type>
 struct creator_imp {};
 
-template <typename object, typename return_type, typename ...arg_types>
-struct creator_imp<object, return_type *(arg_types...), std::true_type>
+template <typename object, typename ...arg_types>
+struct creator_imp<object, std::tuple<arg_types...>, std::true_type>
 {
 	virtual object *create(arg_types &&...args)
 	{
+		assert(false);
 		return nullptr;
 	}
 };
 
-template <typename object, typename return_type, typename ...arg_types, typename base_type>
-struct creator_imp<object, return_type *(arg_types...), base_type> : public virtual base_type
+template <typename object, typename ...arg_types, typename base>
+struct creator_imp<object, std::tuple<arg_types...>, base> : public virtual base
 {
-	using base_type::create;
+	using base::create;
 
 	virtual object *create(arg_types &&...args)
 	{
+		assert(false);
 		return nullptr;
 	}
 };
@@ -42,14 +44,14 @@ struct make_creator_type {};
 template <typename object, typename head>
 struct make_creator_type<object, head>
 {
-	using type = creator_imp<object, decltype(head::create), std::true_type>;
+	using type = creator_imp<object, typename head::_type_info::init_arg_tuple, std::true_type>;
 };
 
 template <typename object, typename head, typename ...tails>
 struct make_creator_type<object, head, tails...>
 {
 	using tail_type = typename make_creator_type<object, tails...>::type;
-	using type = creator_imp<object, decltype(head::create), tail_type>;
+	using type = creator_imp<object, typename head::_type_info::init_arg_tuple, tail_type>;
 };
 
 /// make_creator_base
@@ -63,14 +65,16 @@ struct make_creator_base<std::tuple<object_types...>, object>
 };
 
 /// concreate_creator
-template <typename type, typename object, typename base, typename fun_type>
+template <typename type, typename object, typename base, typename arg_type>
 struct concreate_creator : public virtual base
 {
 };
 
-template <typename type, typename object, typename base, typename return_type, typename ...arg_types>
-struct concreate_creator<type, object, base, return_type(arg_types ...)> : public virtual base
+template <typename type, typename object, typename base, typename ...arg_types>
+struct concreate_creator<type, object, base, std::tuple<arg_types...>> : public virtual base
 {
+	using base::create;
+
 	virtual object *create(arg_types && ...args)
 	{
 		return new type(std::forward<arg_types>(args)...);
@@ -84,11 +88,10 @@ struct factory_creator {};
 template <typename head, typename object, typename base>
 struct factory_creator<std::tuple<head>, object, base>
 {
-	using creator = concreate_creator<head, object, base, decltype(head::create)>;
+	using creator = concreate_creator<head, object, base, typename head::_type_info::init_arg_tuple>;
 	static void create(std::function<void (const std::string &, base *)> fun)
 	{
-		creator *c = new creator;
-		fun(head::name(), new creator);
+		fun(head::_type_info::name(), new creator);
 	}
 };
 
